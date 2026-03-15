@@ -9,7 +9,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const CVUploadWidget: React.FC = () => {
+interface CVUploadWidgetProps {
+  onUpload?: (e: React.MouseEvent | React.DragEvent) => void;
+}
+
+const CVUploadWidget: React.FC<CVUploadWidgetProps> = ({ onUpload }) => {
   const navigate = useNavigate();
   const [isDragActive, setIsDragActive] = useState(false);
 
@@ -17,8 +21,12 @@ const CVUploadWidget: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Simulate immediate processing redirect
-    navigate('/signup');
+    if (onUpload) {
+      onUpload(e);
+    } else {
+      // Provide default simulated redirect for the Landing Page
+      navigate('/signup');
+    }
   };
 
   const handleDragEnter = (e: React.DragEvent) => {
