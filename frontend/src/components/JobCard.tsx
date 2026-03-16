@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, MapPin, Building, Briefcase, Globe, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { JobMock } from '../lib/mockData';
 
 interface JobCardProps {
@@ -10,6 +11,7 @@ interface JobCardProps {
 
 export const JobCard: React.FC<JobCardProps> = ({ job, index }) => {
   const isPremiumLocked = job.matchScore > 80;
+  const navigate = useNavigate();
 
   // Logic to determine score color
   const getScoreColor = (score: number) => {
@@ -23,7 +25,12 @@ export const JobCard: React.FC<JobCardProps> = ({ job, index }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1, duration: 0.4 }}
-      className="bg-gradient-to-b from-background-surface to-background border-[1px] border-background-elevated rounded-2xl p-6 shadow-md transition-all duration-400 ease-in-out hover:-translate-y-1 hover:border-primary-500/30 hover:shadow-[0px_12px_24px_0_rgba(16,185,129,0.1)] relative overflow-hidden group"
+      onClick={() => {
+        if (!isPremiumLocked) {
+          navigate(`/dashboard/job/${job.id}`);
+        }
+      }}
+      className={`bg-gradient-to-b from-background-surface to-background border-[1px] border-background-elevated rounded-2xl p-6 shadow-md transition-all duration-400 ease-in-out relative overflow-hidden group ${!isPremiumLocked ? 'cursor-pointer hover:-translate-y-1 hover:border-primary-500/30 hover:shadow-[0px_12px_24px_0_rgba(16,185,129,0.1)]' : ''}`}
     >
       {/* Decorative Glow if High Score */}
       {job.matchScore >= 90 && (
