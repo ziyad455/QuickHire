@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, CheckCircle2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import CVUploadWidget from '../components/CVUploadWidget';
 
 const AnimatedText = ({ text, className }: { text: string; className?: string }) => {
@@ -49,16 +50,16 @@ const LandingPage: React.FC = () => {
       {/* Navigation */}
       <nav className="w-full max-w-6xl mx-auto px-6 py-6 flex justify-between items-center relative z-20">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary-500 rounded-lg shadow-glow flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-2xl font-heading font-bold tracking-tight">QuickHire</span>
+          <Link to="/" className="flex items-center space-x-2">
+            <Sparkles className="w-6 h-6 text-primary-500" />
+            <span className="text-2xl font-heading font-bold text-text-primary tracking-tight">QuickHire</span>
+          </Link>
         </div>
-        <div className="hidden md:flex space-x-8 text-sm font-medium text-text-secondary">
-          <a href="#features" className="hover:text-primary-400 transition-colors">Features</a>
-          <a href="#pricing" className="hover:text-primary-400 transition-colors">Pricing</a>
+        <div className="hidden md:flex items-center space-x-8">
+          <a href="#how-it-works" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">How it works</a>
+          <Link to="/pricing" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">Pricing</Link>
         </div>
-        <div className="flex space-x-4">
+        <div className="flex items-center space-x-4">
           <a href="/login" className="px-5 py-2.5 text-sm font-medium text-text-primary hover:text-primary-400 transition-colors">Log in</a>
           <a href="/signup" className="px-5 py-2.5 text-sm font-medium bg-text-primary text-background rounded-xl hover:bg-slate-200 transition-colors shadow-lg shadow-white/5">Sign up</a>
         </div>

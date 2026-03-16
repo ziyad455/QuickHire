@@ -5,12 +5,15 @@ import { PublicRoute } from './components/PublicRoute';
 import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
+import PricingPage from './pages/PricingPage';
+import JobDetailPage from './pages/JobDetailPage';
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/pricing" element={<PricingPage />} />
           {/* Public Routes - Auto Redirect if Logged In */}
           <Route 
             path="/" 
@@ -43,6 +46,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dashboard/job/:id" 
+            element={
+              <ProtectedRoute>
+                <JobDetailPage />
               </ProtectedRoute>
             } 
           />
