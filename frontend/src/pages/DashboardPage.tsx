@@ -4,7 +4,6 @@ import { Sparkles, SlidersHorizontal, MapPin, Briefcase, Globe, Loader2, LogOut 
 import { useAuth } from '../contexts/AuthContext';
 import CVUploadWidget from '../components/CVUploadWidget';
 import { JobCard } from '../components/JobCard';
-import { mockJobs } from '../lib/mockData';
 import type { JobMock } from '../lib/mockData';
 
 type DashboardState = 'PRE_UPLOAD' | 'ANALYZING' | 'RESULTS';
@@ -15,41 +14,70 @@ const DashboardPage: React.FC = () => {
   // App State
   const [currentState, setCurrentState] = useState<DashboardState>('PRE_UPLOAD');
   const [results, setResults] = useState<JobMock[]>([]);
+  const [candidateInfo, setCandidateInfo] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   
   // Filter State
   const [locationFilter, setLocationFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('All Types');
   const [remoteFilter, setRemoteFilter] = useState('All Settings');
 
-  const handleUpload = () => {
+  const handleUpload = async (_e: React.MouseEvent | React.DragEvent, file?: File) => {
+    if (!file) {
+        setError("Please select a file to upload.");
+        return;
+    }
+
     // Transition to Analyzing
     setCurrentState('ANALYZING');
+    setError(null);
     
-    // Simulate AI Extraction & Matching Delay
-    setTimeout(() => {
-      // Calculate resulting jobs based on active filters
-      let matchedJobs = [...mockJobs];
+    const formData = new FormData();
+    formData.append('file', file);
 
-      if (locationFilter.trim() !== '') {
-        matchedJobs = matchedJobs.filter(job => 
-          job.location.toLowerCase().includes(locationFilter.toLowerCase())
-        );
-      }
+    try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5555';
+        const response = await fetch(`${apiUrl}/analyze-cv`, {
+            method: 'POST',
+            body: formData,
+        });
 
-      if (typeFilter !== 'All Types') {
-         matchedJobs = matchedJobs.filter(job => job.type === typeFilter);
-      }
+        const data = await response.json();
 
-      if (remoteFilter !== 'All Settings') {
-         matchedJobs = matchedJobs.filter(job => job.remoteOption === remoteFilter);
-      }
-      
-      // Sort by Match Score Descending
-      matchedJobs.sort((a, b) => b.matchScore - a.matchScore);
-      
-      setResults(matchedJobs);
-      setCurrentState('RESULTS');
-    }, 2500); // 2.5 second mock delay
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to analyze CV');
+        }
+
+        if (data.status === 'success') {
+            let matchedJobs = data.matches || [];
+            
+            // Client-side filtering
+            if (locationFilter.trim() !== '') {
+              matchedJobs = matchedJobs.filter((job: any) => 
+                job.location.toLowerCase().includes(locationFilter.toLowerCase())
+              );
+            }
+
+            if (typeFilter !== 'All Types') {
+               matchedJobs = matchedJobs.filter((job: any) => job.type === typeFilter);
+            }
+
+            if (remoteFilter !== 'All Settings') {
+               matchedJobs = matchedJobs.filter((job: any) => job.remoteOption === remoteFilter);
+            }
+            
+            setResults(matchedJobs);
+            setCandidateInfo(data.candidate);
+            setCurrentState('RESULTS');
+        } else {
+             throw new Error("Invalid response format from server");
+        }
+
+    } catch (err: any) {
+        console.error(err);
+        setError(err.message || "An unexpected error occurred during analysis.");
+        setCurrentState('PRE_UPLOAD');
+    }
   };
 
   const handleReset = () => {
@@ -167,6 +195,11 @@ const DashboardPage: React.FC = () => {
               {/* Upload Widget Trigger */}
               <div className="bg-primary-500/5 border border-primary-500/10 p-8 rounded-3xl max-w-4xl mx-auto shadow-ai-glow">
                  <CVUploadWidget onUpload={handleUpload} />
+                 {error && (
+                    <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-center text-sm">
+                        {error}
+                    </div>
+                 )}
               </div>
 
             </motion.div>
@@ -210,6 +243,11 @@ const DashboardPage: React.FC = () => {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-background-elevated pb-6">
                 <div>
                   <h2 className="text-3xl font-heading font-bold text-text-primary">Your Top Matches</h2>
+                  {candidateInfo && (
+                      <p className="text-primary-400 font-medium mt-2">
+                        Parsed Profile: {candidateInfo.primary_role} • {candidateInfo.years_of_experience} YOE • {candidateInfo.location}
+                      </p>
+                  )}
                   <p className="text-text-secondary mt-1">Based on your extracted skills and active preferences.</p>
                 </div>
                 <button 

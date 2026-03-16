@@ -10,19 +10,32 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 interface CVUploadWidgetProps {
-  onUpload?: (e: React.MouseEvent | React.DragEvent) => void;
+  onUpload?: (e: React.MouseEvent | React.DragEvent, file?: File) => void;
 }
 
 const CVUploadWidget: React.FC<CVUploadWidgetProps> = ({ onUpload }) => {
   const navigate = useNavigate();
   const [isDragActive, setIsDragActive] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0 && onUpload) {
+      onUpload(e as unknown as React.MouseEvent, e.target.files[0]);
+    }
+  };
 
   const handleInteraction = (e: React.MouseEvent | React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     if (onUpload) {
-      onUpload(e);
+      if ('dataTransfer' in e && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        // Handle Drop
+        onUpload(e, e.dataTransfer.files[0]);
+      } else {
+        // Handle Click - open file dialog
+        fileInputRef.current?.click();
+      }
     } else {
       // Provide default simulated redirect for the Landing Page
       navigate('/signup');
@@ -94,6 +107,14 @@ const CVUploadWidget: React.FC<CVUploadWidgetProps> = ({ onUpload }) => {
                 <ArrowRight className="w-5 h-5" />
              </div>
           </div>
+          
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            className="hidden" 
+            accept=".pdf,.docx"
+          />
         </div>
       </div>
     </motion.div>
