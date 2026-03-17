@@ -57,7 +57,6 @@ const LandingPage: React.FC = () => {
         </div>
         <div className="hidden md:flex items-center space-x-8">
           <a href="#how-it-works" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">How it works</a>
-          <Link to="/pricing" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">Pricing</Link>
         </div>
         <div className="flex items-center space-x-4">
           <a href="/login" className="px-5 py-2.5 text-sm font-medium text-text-primary hover:text-primary-400 transition-colors">Log in</a>

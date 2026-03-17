@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, MapPin, Building, Briefcase, Globe, Lock } from 'lucide-react';
+import { CheckCircle2, MapPin, Building, Briefcase, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { JobMock } from '../lib/mockData';
 
@@ -10,7 +10,6 @@ interface JobCardProps {
 }
 
 export const JobCard: React.FC<JobCardProps> = ({ job, index }) => {
-  const isPremiumLocked = job.matchScore > 80;
   const navigate = useNavigate();
 
   // Logic to determine score color
@@ -26,36 +25,17 @@ export const JobCard: React.FC<JobCardProps> = ({ job, index }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1, duration: 0.4 }}
       onClick={() => {
-        if (!isPremiumLocked) {
-          navigate(`/dashboard/job/${job.id}`);
-        }
+        navigate(`/dashboard/job/${job.id}`);
       }}
-      className={`bg-gradient-to-b from-background-surface to-background border-[1px] border-background-elevated rounded-2xl p-6 shadow-md transition-all duration-400 ease-in-out relative overflow-hidden group ${!isPremiumLocked ? 'cursor-pointer hover:-translate-y-1 hover:border-primary-500/30 hover:shadow-[0px_12px_24px_0_rgba(16,185,129,0.1)]' : ''}`}
+      className={`bg-gradient-to-b from-background-surface to-background border-[1px] border-background-elevated rounded-2xl p-6 shadow-md transition-all duration-400 ease-in-out relative overflow-hidden group cursor-pointer hover:-translate-y-1 hover:border-primary-500/30 hover:shadow-[0px_12px_24px_0_rgba(16,185,129,0.1)]`}
     >
       {/* Decorative Glow if High Score */}
       {job.matchScore >= 90 && (
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-primary-500/10 transition-colors" />
       )}
       
-      {/* Premium Overlay */}
-      {isPremiumLocked && (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-background/5 backdrop-blur-[2px]">
-           <div className="bg-background-surface border border-primary-500/30 p-3 rounded-2xl shadow-glow mb-2">
-              <Lock className="w-8 h-8 text-primary-400" />
-           </div>
-           <h4 className="text-xl font-heading font-bold text-text-primary mb-1">Top Match</h4>
-           <div className="inline-block mt-1 font-heading font-black text-3xl text-primary-400">{job.matchScore}%</div>
-           <p className="text-sm text-text-secondary mt-2 max-w-[200px]">
-             Upgrade to Premium to view companies matching over 80%.
-           </p>
-           <button className="mt-4 px-5 py-2.5 bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium rounded-xl shadow-glow transition-colors">
-              Unlock Premium
-           </button>
-        </div>
-      )}
-
       {/* Content Container (Blurred if locked) */}
-      <div className={`transition-all duration-300 ${isPremiumLocked ? 'blur-md opacity-40 select-none pointer-events-none' : ''}`}>
+      <div className={`transition-all duration-300`}>
         <div className="flex justify-between items-start mb-5 relative z-10">
         <div>
           <h3 className="text-xl font-bold text-text-primary group-hover:text-primary-400 transition-colors">{job.title}</h3>
