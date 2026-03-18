@@ -24,21 +24,21 @@ const CVUploadWidget: React.FC<CVUploadWidgetProps> = ({ onUpload }) => {
     }
   };
 
-  const handleInteraction = (e: React.MouseEvent | React.DragEvent) => {
+  const handleClick = () => {
+    if (onUpload) {
+      fileInputRef.current?.click();
+    } else {
+      navigate('/signup');
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsDragActive(false);
     
-    if (onUpload) {
-      if ('dataTransfer' in e && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        // Handle Drop
-        onUpload(e, e.dataTransfer.files[0]);
-      } else {
-        // Handle Click - open file dialog
-        fileInputRef.current?.click();
-      }
-    } else {
-      // Provide default simulated redirect for the Landing Page
-      navigate('/signup');
+    if (onUpload && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      onUpload(e, e.dataTransfer.files[0]);
     }
   };
 
@@ -62,11 +62,11 @@ const CVUploadWidget: React.FC<CVUploadWidgetProps> = ({ onUpload }) => {
       className="w-full max-w-2xl mx-auto"
     >
       <div 
-        onClick={handleInteraction}
+        onClick={handleClick}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={(e) => e.preventDefault()}
-        onDrop={handleInteraction}
+        onDrop={handleDrop}
         className={cn(
           "relative group cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed transition-all duration-300",
           isDragActive 
