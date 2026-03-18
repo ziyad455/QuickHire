@@ -2,10 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, MapPin, Building, Briefcase, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { JobMock } from '../lib/mockData';
+import type { JobResult } from '../lib/jobs';
 
 interface JobCardProps {
-  job: JobMock;
+  job: JobResult;
   index: number;
 }
 
@@ -25,7 +25,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, index }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1, duration: 0.4 }}
       onClick={() => {
-        navigate(`/dashboard/job/${job.id}`);
+        navigate(`/dashboard/job/${job.id}`, { state: { job } });
       }}
       className={`bg-gradient-to-b from-background-surface to-background border-[1px] border-background-elevated rounded-2xl p-6 shadow-md transition-all duration-400 ease-in-out relative overflow-hidden group cursor-pointer hover:-translate-y-1 hover:border-primary-500/30 hover:shadow-[0px_12px_24px_0_rgba(16,185,129,0.1)]`}
     >
@@ -87,6 +87,9 @@ export const JobCard: React.FC<JobCardProps> = ({ job, index }) => {
              <span className="px-2.5 py-1 bg-background text-text-muted rounded-lg text-xs border border-background-elevated flex items-center">
                <Globe className="w-3 h-3 mr-1.5" />
                {job.remoteOption}
+             </span>
+             <span className="px-2.5 py-1 bg-background text-text-muted rounded-lg text-xs border border-background-elevated">
+               {job.source}
              </span>
          </div>
       </div>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -29,9 +29,13 @@ const AuthPage = () => {
       // Redirect to intended destination or home
       const destination = location.state?.from?.pathname || '/';
       navigate(destination, { replace: true });
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message || "Failed to authenticate. Please check your credentials.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to authenticate. Please check your credentials.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -47,9 +51,9 @@ const AuthPage = () => {
       await loginWithGoogle();
       const destination = location.state?.from?.pathname || '/';
       navigate(destination, { replace: true });
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message || "Failed to authenticate with Google.");
+      setError(err instanceof Error ? err.message : 'Failed to authenticate with Google.');
     }
   };
 

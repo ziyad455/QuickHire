@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { User } from 'firebase/auth';
+import React, { createContext, useEffect, useState } from 'react';
+import type { User, UserCredential } from 'firebase/auth';
 import { 
   onAuthStateChanged, 
   signInWithEmailAndPassword, 
@@ -13,22 +13,22 @@ import { auth } from '../lib/firebase';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  loginWithEmail: (email: string, pass: string) => Promise<any>;
-  signupWithEmail: (email: string, pass: string) => Promise<any>;
-  loginWithGoogle: () => Promise<any>;
+  loginWithEmail: (email: string, pass: string) => Promise<UserCredential>;
+  signupWithEmail: (email: string, pass: string) => Promise<UserCredential>;
+  loginWithGoogle: () => Promise<UserCredential>;
   logout: () => Promise<void>;
 }
+
+const missingProviderError = () => Promise.reject(new Error('AuthProvider is not mounted.'));
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  loginWithEmail: async () => {},
-  signupWithEmail: async () => {},
-  loginWithGoogle: async () => {},
+  loginWithEmail: missingProviderError,
+  signupWithEmail: missingProviderError,
+  loginWithGoogle: missingProviderError,
   logout: async () => {}
 });
-
-export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -75,3 +75,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </AuthContext.Provider>
   );
 };
+
+export default AuthContext;

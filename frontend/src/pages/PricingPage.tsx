@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, CheckCircle2, X } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 
 const PricingPage = () => {
   const [isYearly, setIsYearly] = useState(false);

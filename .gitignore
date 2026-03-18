@@ -30,8 +30,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 venv/
+.venv/
 env/
 .env/
+
+# Local Test Files
+backend/dummy_cv.docx
+backend/test_api.py
 
 # Firebase
 .firebase/

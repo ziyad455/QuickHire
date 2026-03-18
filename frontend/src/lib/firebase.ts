@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getAnalytics, isSupported } from "firebase/analytics";
+import { getAnalytics, isSupported, type Analytics } from "firebase/analytics";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCV3I8U7oKC7iArVqNs1hzMoaIwpnP8ASU",
@@ -14,13 +15,14 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 // Initialize Analytics conditionally (it may fail if blockers are present)
-let analytics;
-isSupported().then((supported) => {
+let analytics: Analytics | null = null;
+void isSupported().then((supported) => {
   if (supported) {
     analytics = getAnalytics(app);
   }
 });
 
-export { app, auth, analytics };
+export { app, auth, db, analytics };
