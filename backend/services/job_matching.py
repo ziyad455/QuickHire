@@ -145,9 +145,9 @@ def filter_jobs_by_experience(cv_data, jobs):
     return filtered_jobs
 
 
-def extract_job_required_skills(description_text):
-    description = str(description_text or "").lower()
-    required_skills = [tech for tech in COMMON_TECHS if tech in description]
+def extract_job_required_skills(description_text, title_text=""):
+    combined_text = f"{title_text or ''} {description_text or ''}".lower()
+    required_skills = [tech for tech in COMMON_TECHS if tech in combined_text]
     return required_skills or ["communication", "teamwork"]
 
 
@@ -229,7 +229,10 @@ def calculate_match(cv_data, job):
     candidate_seniority = infer_candidate_seniority(candidate_years)
     required_years = get_effective_required_years(scored_job)
     job_seniority = infer_job_seniority(scored_job, required_years)
-    required_skills = extract_job_required_skills(scored_job.get("description"))
+    required_skills = extract_job_required_skills(
+        scored_job.get("description"),
+        scored_job.get("title"),
+    )
     skill_matches, matched_count = build_skill_matches(cv_skills, required_skills)
 
     experience_score = score_experience_alignment(

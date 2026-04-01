@@ -8,6 +8,14 @@ from services.analysis_pipeline import analyze_cv_upload
 analysis_bp = Blueprint("analysis", __name__)
 
 
+def parse_job_filters():
+    return {
+        "location": request.form.get("job_location", ""),
+        "type": request.form.get("job_type", ""),
+        "remote_option": request.form.get("job_remote_option", ""),
+    }
+
+
 @analysis_bp.route("/", methods=["GET"])
 def root():
     return jsonify({"message": "QuickHire AI Backend is running"})
@@ -23,9 +31,10 @@ def analyze_cv():
         return jsonify({"error": "No selected file"}), 400
 
     page = request.args.get("page", 1, type=int)
+    job_filters = parse_job_filters()
 
     try:
-        payload = analyze_cv_upload(file, page=page)
+        payload = analyze_cv_upload(file, page=page, job_filters=job_filters)
         return jsonify(payload)
     except AppError as exc:
         return jsonify({"error": exc.message}), exc.status_code

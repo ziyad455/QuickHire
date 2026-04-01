@@ -13,6 +13,34 @@ export interface CandidateProfile {
   location: string;
 }
 
+export interface SalaryInsight {
+  job_title: string;
+  location: string;
+  min_salary?: number;
+  max_salary?: number;
+  median_salary?: number;
+  min_base_salary?: number;
+  max_base_salary?: number;
+  median_base_salary?: number;
+  min_additional_pay?: number;
+  max_additional_pay?: number;
+  median_additional_pay?: number;
+  salary_period?: string;
+  salary_currency?: string;
+  salary_count?: number;
+  salaries_updated_at?: string;
+  publisher_name?: string;
+  publisher_link?: string;
+  confidence?: string;
+  experience_band?: string;
+}
+
+export interface JobFilters {
+  location: string;
+  type: string;
+  remoteOption: string;
+}
+
 export interface BackendJobResult {
   id: string;
   title: string;
@@ -55,9 +83,23 @@ export interface AnalyzeCvSuccessResponse {
   status: 'success';
   candidate: CandidateProfile;
   matches: BackendJobResult[];
+  salary_insight: SalaryInsight | null;
   search_query: string;
   search_queries: string[];
 }
+
+export const DEFAULT_JOB_FILTERS: JobFilters = {
+  location: '',
+  type: 'All Types',
+  remoteOption: 'All Settings',
+};
+
+export const getActiveJobFilters = (filters: JobFilters): JobFilters => ({
+  location: filters.location.trim(),
+  type: filters.type === DEFAULT_JOB_FILTERS.type ? '' : filters.type,
+  remoteOption:
+    filters.remoteOption === DEFAULT_JOB_FILTERS.remoteOption ? '' : filters.remoteOption,
+});
 
 const normalizeEmploymentType = (value?: string) => {
   if (!value) {

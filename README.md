@@ -14,7 +14,7 @@ The repository is split into:
 3. The backend extracts raw text from the file.
 4. A Hugging Face LLM converts the CV into structured JSON.
 5. Search queries are generated from the parsed role, skills, and location.
-6. The backend fetches jobs from the JSearch RapidAPI endpoint.
+6. The backend fetches jobs from RapidAPI job providers.
 7. Jobs are ranked by experience, role, skills, and remote/location alignment.
 8. The frontend stores the resulting jobs in Firestore and renders match details plus skill-gap tips.
 
@@ -23,7 +23,8 @@ The repository is split into:
 - CV upload with drag-and-drop UI
 - Support for `PDF` and `DOCX` resumes
 - LLM-based profile extraction
-- Multi-query job search against RapidAPI
+- Multi-query job search across JSearch and LinkedIn RapidAPI providers
+- Salary insight enrichment for the candidate's role and location
 - Ranked match scores from `0-100`
 - Skill gap analysis with improvement tips
 - Firebase email/password and Google sign-in
@@ -43,7 +44,8 @@ The repository is split into:
 - Built with Flask and `flask-cors`
 - Extracts text from CV files with `pdfplumber` and `python-docx`
 - Uses LangChain + Hugging Face Inference to structure CV data
-- Fetches jobs asynchronously with `aiohttp`
+- Fetches jobs asynchronously from multiple RapidAPI providers with `aiohttp`
+- Fetches salary benchmarks for the parsed role and location
 - Normalizes, deduplicates, filters, and ranks jobs before returning them
 
 ## Repository Layout
@@ -107,11 +109,20 @@ Create `backend/.env` with:
 ```env
 HUGGINGFACEHUB_API_TOKEN=your_huggingface_token
 RAPIDAPI_KEY=your_rapidapi_key
+LINKEDIN_LOCATION_ID=92000000
+JOB_SALARY_API_KEY=
+JOB_SALARY_API_URL=https://job-salary-data.p.rapidapi.com/job-salary
+JOB_SALARY_API_HOST=job-salary-data.p.rapidapi.com
+JOB_SALARY_API_KEY_HEADER=x-rapidapi-key
 ```
 
 Notes:
 
 - `HUGGINGFACEHUB_API_TOKEN` is required for CV parsing.
+- `RAPIDAPI_KEY` is shared by the configured RapidAPI job providers.
+- `LINKEDIN_LOCATION_ID` defaults to `92000000` if omitted.
+- `JOB_SALARY_API_KEY` falls back to `RAPIDAPI_KEY` if omitted.
+- `JOB_SALARY_API_*` lets you switch between RapidAPI-style auth and direct provider auth such as `x-api-key`.
 - If `RAPIDAPI_KEY` is missing or set to `placeholder`, the backend falls back to mock jobs.
 
 ### Frontend `.env`
@@ -191,6 +202,7 @@ Successful response shape:
     "location": "Casablanca"
   },
   "matches": [],
+  "salary_insight": null,
   "search_query": "Software Engineer",
   "search_queries": ["Software Engineer", "Software Engineer React"]
 }
@@ -213,6 +225,7 @@ The backend also filters out jobs that are clearly above the candidate's experie
 - The frontend sends a Firebase ID token in the `Authorization` header, but the backend does not currently verify it.
 - Backend CORS is open to `*` during development.
 - LinkedIn auth in the UI is a placeholder and is not implemented.
+- The LinkedIn RapidAPI search source is queried as part of the aggregated provider set, but the vendor may currently return service-unavailable responses.
 - A `PricingPage.tsx` file exists in the frontend, but it is not currently wired into the router.
 - There is no automated test suite in the repository at the moment.
 

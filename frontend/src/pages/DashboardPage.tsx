@@ -13,11 +13,15 @@ import { useAuth } from '../contexts/useAuth';
 import CVUploadWidget from '../components/CVUploadWidget';
 import { JobCard } from '../components/JobCard';
 import {
+  DEFAULT_JOB_FILTERS,
   formatSearchDate,
+  getActiveJobFilters,
   normalizeJobResult,
   type AnalyzeCvSuccessResponse,
   type CandidateProfile,
+  type JobFilters,
   type JobResult,
+  type SalaryInsight,
 } from '../lib/jobs';
 import { useUserJobs } from '../hooks/useUserJobs';
 import { saveUserJobs } from '../services/jobService';
@@ -26,20 +30,50 @@ type DashboardState = 'PRE_UPLOAD' | 'ANALYZING' | 'RESULTS';
 
 const filterJobs = (
   jobs: JobResult[],
-  locationFilter: string,
-  typeFilter: string,
-  remoteFilter: string
-) =>
-  jobs.filter((job) => {
+  filters: JobFilters
+) => {
+  const activeFilters = getActiveJobFilters(filters);
+
+  return jobs.filter((job) => {
     const matchesLocation =
-      locationFilter.trim() === '' ||
-      job.location.toLowerCase().includes(locationFilter.toLowerCase());
-    const matchesType = typeFilter === 'All Types' || job.type === typeFilter;
+      activeFilters.location === '' ||
+      job.location.toLowerCase().includes(activeFilters.location.toLowerCase());
+    const matchesType = activeFilters.type === '' || job.type === activeFilters.type;
     const matchesRemote =
-      remoteFilter === 'All Settings' || job.remoteOption === remoteFilter;
+      activeFilters.remoteOption === '' || job.remoteOption === activeFilters.remoteOption;
 
     return matchesLocation && matchesType && matchesRemote;
   });
+};
+
+const formatSalaryValue = (value?: number, currency = 'USD') => {
+  if (typeof value !== 'number') {
+    return 'N/A';
+  }
+
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
+const formatSalaryTimestamp = (value?: string) => {
+  if (!value) {
+    return 'Unknown';
+  }
+
+  const parsedDate = new Date(value);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(parsedDate);
+};
 
 const DashboardPage: React.FC = () => {
   const { user, logout } = useAuth();
@@ -48,12 +82,13 @@ const DashboardPage: React.FC = () => {
   const [currentState, setCurrentState] = useState<DashboardState>('PRE_UPLOAD');
   const [results, setResults] = useState<JobResult[]>([]);
   const [candidateInfo, setCandidateInfo] = useState<CandidateProfile | null>(null);
+  const [salaryInsight, setSalaryInsight] = useState<SalaryInsight | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [savedJobsInitialized, setSavedJobsInitialized] = useState(false);
 
-  const [locationFilter, setLocationFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('All Types');
-  const [remoteFilter, setRemoteFilter] = useState('All Settings');
+  const [locationFilter, setLocationFilter] = useState(DEFAULT_JOB_FILTERS.location);
+  const [typeFilter, setTypeFilter] = useState(DEFAULT_JOB_FILTERS.type);
+  const [remoteFilter, setRemoteFilter] = useState(DEFAULT_JOB_FILTERS.remoteOption);
 
   useEffect(() => {
     if (savedJobsLoading || savedJobsInitialized) {
@@ -88,6 +123,24 @@ const DashboardPage: React.FC = () => {
     const formData = new FormData();
     formData.append('file', file);
 
+    const activeFilters = getActiveJobFilters({
+      location: locationFilter,
+      type: typeFilter,
+      remoteOption: remoteFilter,
+    });
+
+    if (activeFilters.location) {
+      formData.append('job_location', activeFilters.location);
+    }
+
+    if (activeFilters.type) {
+      formData.append('job_type', activeFilters.type);
+    }
+
+    if (activeFilters.remoteOption) {
+      formData.append('job_remote_option', activeFilters.remoteOption);
+    }
+
     try {
       const headers: HeadersInit = {};
       const token = await user.getIdToken();
@@ -118,6 +171,7 @@ const DashboardPage: React.FC = () => {
 
       setResults(normalizedJobs);
       setCandidateInfo(successData.candidate);
+      setSalaryInsight(successData.salary_insight ?? null);
       setCurrentState('RESULTS');
 
       try {
@@ -139,6 +193,7 @@ const DashboardPage: React.FC = () => {
 
   const handleReset = () => {
     setCandidateInfo(null);
+    setSalaryInsight(null);
     setError(null);
     setCurrentState('PRE_UPLOAD');
   };
@@ -146,11 +201,16 @@ const DashboardPage: React.FC = () => {
   const handleShowSavedJobs = () => {
     setResults(savedJobs);
     setCandidateInfo(null);
+    setSalaryInsight(null);
     setError(null);
     setCurrentState('RESULTS');
   };
 
-  const visibleResults = filterJobs(results, locationFilter, typeFilter, remoteFilter);
+  const visibleResults = filterJobs(results, {
+    location: locationFilter,
+    type: typeFilter,
+    remoteOption: remoteFilter,
+  });
   const latestSearch = results[0];
 
   return (
@@ -347,6 +407,72 @@ const DashboardPage: React.FC = () => {
                   Upload New CV
                 </button>
               </div>
+
+              {salaryInsight && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-background-surface border border-background-elevated rounded-3xl p-5">
+                    <p className="text-xs uppercase tracking-widest text-text-muted mb-2">
+                      Market Median
+                    </p>
+                    <p className="text-3xl font-heading font-black text-primary-400">
+                      {formatSalaryValue(
+                        salaryInsight.median_salary,
+                        salaryInsight.salary_currency || 'USD'
+                      )}
+                    </p>
+                    <p className="text-sm text-text-secondary mt-2">
+                      {salaryInsight.job_title} in {salaryInsight.location}
+                    </p>
+                  </div>
+
+                  <div className="bg-background-surface border border-background-elevated rounded-3xl p-5">
+                    <p className="text-xs uppercase tracking-widest text-text-muted mb-2">
+                      Estimated Range
+                    </p>
+                    <p className="text-lg font-semibold text-text-primary">
+                      {formatSalaryValue(
+                        salaryInsight.min_salary,
+                        salaryInsight.salary_currency || 'USD'
+                      )}{' '}
+                      -{' '}
+                      {formatSalaryValue(
+                        salaryInsight.max_salary,
+                        salaryInsight.salary_currency || 'USD'
+                      )}
+                    </p>
+                    <p className="text-sm text-text-secondary mt-2">
+                      Base median{' '}
+                      {formatSalaryValue(
+                        salaryInsight.median_base_salary,
+                        salaryInsight.salary_currency || 'USD'
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="bg-background-surface border border-background-elevated rounded-3xl p-5">
+                    <p className="text-xs uppercase tracking-widest text-text-muted mb-2">
+                      Source
+                    </p>
+                    <p className="text-lg font-semibold text-text-primary">
+                      {salaryInsight.publisher_name || 'Salary API'}
+                    </p>
+                    <p className="text-sm text-text-secondary mt-2">
+                      Confidence {salaryInsight.confidence || 'Unknown'} • Updated{' '}
+                      {formatSalaryTimestamp(salaryInsight.salaries_updated_at)}
+                    </p>
+                    {salaryInsight.publisher_link && (
+                      <a
+                        href={salaryInsight.publisher_link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex mt-3 text-sm font-medium text-primary-400 hover:text-primary-300 transition-colors"
+                      >
+                        View salary source
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {error && (
                 <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-300 text-sm">
