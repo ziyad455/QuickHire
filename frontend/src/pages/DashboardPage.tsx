@@ -307,7 +307,7 @@ const DashboardPage: React.FC = () => {
                 </h3>
                 <p className="text-text-secondary flex items-center justify-center">
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Running semantic gap analysis and fetching jobs from multiple APIs
+                  Running semantic gap analysis and fetching aggregated job listings
                 </p>
               </div>
             </motion.div>
@@ -337,7 +337,7 @@ const DashboardPage: React.FC = () => {
                     </p>
                   ) : null}
                   <p className="text-text-secondary mt-1">
-                    Aggregated from RapidAPI sources and synced to Firestore.
+                    Aggregated from RapidAPI job sources and synced to Firestore.
                   </p>
                 </div>
                 <button

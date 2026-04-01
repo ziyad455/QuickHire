@@ -36,6 +36,24 @@ interface FirestoreJobDocument extends DocumentData {
   updatedAt?: Timestamp;
 }
 
+const stripUndefinedDeep = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item) => item !== undefined)
+      .map((item) => stripUndefinedDeep(item));
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, entryValue]) => entryValue !== undefined)
+        .map(([key, entryValue]) => [key, stripUndefinedDeep(entryValue)])
+    );
+  }
+
+  return value;
+};
+
 const convertToJob = (id: string, data: FirestoreJobDocument): JobResult => {
   const savedAt =
     data.savedAt instanceof Timestamp
@@ -72,24 +90,28 @@ export const saveUserJobs = async (userId: string, jobs: JobResult[]) => {
 
   jobs.forEach((job) => {
     const jobRef = doc(db, USERS_COLLECTION, userId, JOBS_SUBCOLLECTION, job.id);
+    const payload = stripUndefinedDeep({
+      title: job.title,
+      company: job.company,
+      location: job.location,
+      source: job.source,
+      applyUrl: job.applyUrl,
+      description: job.description,
+      datePosted: job.datePosted,
+      queryUsed: job.queryUsed,
+      type: job.type,
+      remoteOption: job.remoteOption,
+      skills: job.skills,
+      matchScore: job.matchScore,
+      searchQuery: job.searchQuery,
+      searchQueries: job.searchQueries,
+      searchDate: job.searchDate,
+    }) as Record<string, unknown>;
+
     batch.set(
       jobRef,
       {
-        title: job.title,
-        company: job.company,
-        location: job.location,
-        source: job.source,
-        applyUrl: job.applyUrl,
-        description: job.description,
-        datePosted: job.datePosted,
-        queryUsed: job.queryUsed,
-        type: job.type,
-        remoteOption: job.remoteOption,
-        skills: job.skills,
-        matchScore: job.matchScore,
-        searchQuery: job.searchQuery,
-        searchQueries: job.searchQueries,
-        searchDate: job.searchDate,
+        ...payload,
         savedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       },

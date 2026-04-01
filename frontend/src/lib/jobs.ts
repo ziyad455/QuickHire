@@ -99,12 +99,22 @@ const normalizeSkills = (skills?: SkillMatch[]) => {
     return [];
   }
 
-  return skills.map((skill) => ({
-    name: skill.name,
-    required: skill.required,
-    status: skill.status,
-    improvementTip: skill.improvementTip,
-  }));
+  return skills.map((skill) => {
+    const normalizedSkill: SkillMatch = {
+      name: skill.name,
+      required: skill.required,
+    };
+
+    if (skill.status) {
+      normalizedSkill.status = skill.status;
+    }
+
+    if (skill.improvementTip) {
+      normalizedSkill.improvementTip = skill.improvementTip;
+    }
+
+    return normalizedSkill;
+  });
 };
 
 export const normalizeJobResult = (
