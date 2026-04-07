@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { gsap } from 'gsap';
 import {
   Sparkles,
   MapPin,
@@ -32,6 +32,7 @@ const JobDetailPage = () => {
   const [job, setJob] = useState<JobResult | null>(routeState?.job ?? null);
   const [loading, setLoading] = useState(!routeState?.job);
   const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let isActive = true;
@@ -71,7 +72,7 @@ const JobDetailPage = () => {
         }
 
         if (!storedJob) {
-          setError('Job not found in your saved Firestore results.');
+          setError('Job not found in your saved matches.');
           setJob(null);
           setLoading(false);
           return;
@@ -96,14 +97,31 @@ const JobDetailPage = () => {
     };
   }, [id, routeState?.job, user?.uid]);
 
+  // GSAP Entrance Animations
+  useEffect(() => {
+    if (!loading && job && containerRef.current) {
+      const ctx = gsap.context(() => {
+        const tl = gsap.timeline();
+        tl.from('.anim-fade-up', {
+          y: 30,
+          opacity: 0,
+          duration: 0.6,
+          stagger: 0.1,
+          ease: 'power3.out'
+        });
+      }, containerRef);
+      return () => ctx.revert();
+    }
+  }, [loading, job]);
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center font-sans tracking-wide">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center font-body selection:bg-primary/20">
         <div className="text-center">
-          <h2 className="text-3xl font-heading font-bold text-text-primary mb-4">
+          <h2 className="text-3xl font-heading font-extrabold text-on_surface mb-4">
             Loading Job Details
           </h2>
-          <p className="text-text-secondary">Pulling the saved document from Firestore.</p>
+          <p className="text-on_surface_variant">Pulling the saved document...</p>
         </div>
       </div>
     );
@@ -111,17 +129,17 @@ const JobDetailPage = () => {
 
   if (!job) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center font-sans tracking-wide">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center font-body selection:bg-primary/20">
         <div className="text-center max-w-md px-6">
-          <h2 className="text-3xl font-heading font-bold text-text-primary mb-4">
+          <h2 className="text-3xl font-heading font-extrabold text-on_surface mb-4">
             Job Not Found
           </h2>
-          <p className="text-text-secondary mb-6">
+          <p className="text-on_surface_variant mb-6">
             {error || 'The selected job no longer exists in your saved results.'}
           </p>
           <button
             onClick={() => navigate('/dashboard')}
-            className="text-primary-400 hover:text-primary-300 font-medium border border-primary-500/30 px-6 py-2 rounded-xl"
+            className="text-primary hover:text-primary_container font-bold border border-primary/30 px-6 py-2.5 rounded-xl transition-colors hover:bg-primary/5"
           >
             Return to Dashboard
           </button>
@@ -134,20 +152,20 @@ const JobDetailPage = () => {
   const missingSkills = job.skills.filter((skill) => skill.status === 'missing');
 
   return (
-    <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary-500/30">
-      <nav className="border-b border-background-elevated bg-background/50 backdrop-blur-md sticky top-0 z-50">
+    <div ref={containerRef} className="min-h-screen bg-background text-on_surface flex flex-col font-body selection:bg-primary/20">
+      <nav className="border-b border-outline_variant/15 bg-surface/60 backdrop-blur-[20px] sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center space-x-2">
-            <Sparkles className="w-5 h-5 text-primary-500" />
-            <span className="text-xl font-heading font-bold text-text-primary">QuickHire</span>
+            <Sparkles className="w-5 h-5 text-primary" />
+            <span className="text-xl font-heading font-bold text-on_surface tracking-tight">Luminal Talent</span>
           </Link>
           <div className="flex items-center space-x-4">
-            <span className="text-sm border border-background-elevated px-3 py-1.5 rounded-full text-text-secondary hidden sm:inline-block">
+            <span className="text-sm border border-outline_variant/30 px-3 py-1.5 rounded-full text-on_surface_variant hidden sm:inline-block font-medium">
               {user?.email}
             </span>
             <button
               onClick={() => logout()}
-              className="p-2 text-text-muted hover:text-red-400 transition-colors rounded-lg bg-background-surface/50 border border-background-elevated"
+              className="p-2 text-outline hover:text-error transition-colors rounded-[12px] bg-surface_container_lowest border border-outline_variant/15 hover:border-error/30"
               title="Logout"
             >
               <LogOut className="w-4 h-4" />
@@ -159,7 +177,7 @@ const JobDetailPage = () => {
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-8 md:py-12">
         <button
           onClick={() => navigate('/dashboard')}
-          className="inline-flex items-center text-sm font-medium text-text-muted hover:text-text-primary transition-colors mb-8 group"
+          className="anim-fade-up inline-flex items-center text-sm font-bold text-outline hover:text-on_surface transition-colors mb-8 group"
         >
           <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
           Back to Matches
@@ -167,20 +185,16 @@ const JobDetailPage = () => {
 
         <div className="grid lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2 space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-background-surface border border-background-elevated rounded-3xl p-6 md:p-8"
-            >
+            <div className="anim-fade-up bg-surface_container_lowest border border-outline_variant/15 rounded-[24px] p-6 md:p-8 shadow-ambient-sm">
               <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                 <div>
-                  <h1 className="text-3xl md:text-4xl font-heading font-black text-text-primary mb-4 tracking-tight">
+                  <h1 className="text-3xl md:text-5xl font-heading font-extrabold text-on_surface mb-4 tracking-tight">
                     {job.title}
                   </h1>
-                  <div className="flex flex-wrap items-center gap-4 text-text-secondary text-sm md:text-base font-medium">
-                    <div className="flex items-center bg-background/50 border border-white/5 py-1 px-3 rounded-lg">
+                  <div className="flex flex-wrap items-center gap-4 text-on_surface_variant text-sm md:text-base font-semibold">
+                    <div className="flex items-center bg-surface border border-outline_variant/30 py-1.5 px-3 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
                       <Building className="w-4 h-4 mr-2 opacity-70" />
-                      <span className="text-text-primary">{job.company}</span>
+                      <span className="text-on_surface">{job.company}</span>
                     </div>
                     <div className="flex items-center">
                       <MapPin className="w-4 h-4 mr-2 opacity-70" />
@@ -195,39 +209,39 @@ const JobDetailPage = () => {
                       {job.remoteOption}
                     </div>
                   </div>
-                  <div className="mt-4 flex flex-wrap gap-2 text-xs text-text-muted">
-                    <span className="px-3 py-1 rounded-full border border-background-elevated bg-background">
+                  <div className="mt-5 flex flex-wrap gap-2 text-xs text-outline font-semibold">
+                    <span className="px-3 py-1.5 rounded-xl border border-outline_variant/15 bg-surface_container_low">
                       {job.source}
                     </span>
-                    <span className="px-3 py-1 rounded-full border border-background-elevated bg-background">
+                    <span className="px-3 py-1.5 rounded-xl border border-outline_variant/15 bg-surface_container_low">
                       Posted {job.datePosted}
                     </span>
-                    <span className="px-3 py-1 rounded-full border border-background-elevated bg-background">
+                    <span className="px-3 py-1.5 rounded-xl border border-outline_variant/15 bg-surface_container_low">
                       Search: {job.searchQuery}
                     </span>
-                    <span className="px-3 py-1 rounded-full border border-background-elevated bg-background">
+                    <span className="px-3 py-1.5 rounded-xl border border-outline_variant/15 bg-surface_container_low">
                       Saved {formatSearchDate(job.searchDate)}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex-shrink-0 flex flex-col items-center justify-center p-5 rounded-3xl bg-primary-500/5 border border-primary-500/20 shadow-glow relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-primary-500/10 scale-0 group-hover:scale-150 transition-transform duration-500 rounded-full blur-xl" />
-                  <span className="font-heading font-black text-5xl text-primary-400 leading-none relative z-10">
+                <div className="flex-shrink-0 flex flex-col items-center justify-center p-6 rounded-[24px] bg-primary/5 border border-primary/20 shadow-ambient relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-primary/10 scale-0 group-hover:scale-150 transition-transform duration-500 rounded-full blur-2xl pointer-events-none" />
+                  <span className="font-heading font-black text-5xl text-primary leading-none relative z-10">
                     {job.matchScore}%
                   </span>
-                  <span className="text-[10px] uppercase tracking-widest font-bold mt-2 text-primary-500/80 relative z-10">
+                  <span className="text-[10px] uppercase tracking-widest font-bold mt-2 text-primary/80 relative z-10">
                     Match Score
                   </span>
                 </div>
               </div>
 
-              <div className="mt-8 pt-8 border-t border-background-elevated">
-                <h2 className="text-xl font-heading font-bold text-text-primary mb-4">
+              <div className="mt-8 pt-8 border-t border-outline_variant/15">
+                <h2 className="text-xl font-heading font-extrabold text-on_surface mb-4">
                   About the Role
                 </h2>
-                <div className="text-text-secondary pr-4">
-                  <p className="leading-relaxed text-lg whitespace-pre-line bg-background/30 p-6 rounded-2xl border border-white/5 shadow-inner">
+                <div className="text-on_surface_variant pr-4">
+                  <p className="leading-relaxed text-lg whitespace-pre-line bg-surface_container_low p-6 rounded-[24px] border border-outline_variant/15 shadow-inner">
                     {job.description}
                   </p>
                 </div>
@@ -238,33 +252,28 @@ const JobDetailPage = () => {
                   href={job.applyUrl || '#'}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full md:w-auto px-10 py-4 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-bold rounded-2xl shadow-[0_8px_30px_rgba(16,185,129,0.3)] transition-all active:scale-[0.98] inline-flex items-center justify-center group overflow-hidden relative"
+                  className="w-full md:w-auto px-10 py-4 bg-gradient-to-br from-primary to-primary_container text-on_primary font-bold rounded-[16px] shadow-ambient hover:shadow-ambient-sm transition-all duration-300 hover:-translate-y-0.5 inline-flex items-center justify-center group overflow-hidden relative border-t border-primary_fixed_dim"
                 >
                   <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none" />
                   <span className="relative z-10">Apply Now</span>
                   <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1.5 transition-transform relative z-10" />
                 </a>
               </div>
-            </motion.div>
+            </div>
           </div>
 
           <div className="space-y-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-background-surface border border-background-elevated rounded-3xl p-6"
-            >
-              <h3 className="text-lg font-heading font-bold text-text-primary mb-6 flex items-center">
-                <Sparkles className="w-5 h-5 mr-2 text-primary-400" />
+            <div className="anim-fade-up bg-surface_container_lowest border border-outline_variant/15 rounded-[24px] p-6 shadow-ambient-sm">
+              <h3 className="text-lg font-heading font-bold text-on_surface mb-6 flex items-center">
+                <Sparkles className="w-5 h-5 mr-3 text-primary" />
                 Skill Gap Analysis
               </h3>
 
               <div className="space-y-6">
                 <div>
-                  <h4 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-3 flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-outline uppercase tracking-widest mb-3 flex items-center justify-between">
                     Matched Skills
-                    <span className="bg-primary-500/20 text-primary-400 px-2 py-0.5 rounded-md text-[10px]">
+                    <span className="bg-primary/20 text-primary px-2 py-0.5 rounded-lg text-[10px]">
                       {matchedSkills.length}
                     </span>
                   </h4>
@@ -273,7 +282,7 @@ const JobDetailPage = () => {
                       {matchedSkills.map((skill, index) => (
                         <span
                           key={`${skill.name}-${index}`}
-                          className="px-3 py-1.5 bg-primary-500/10 text-primary-400 rounded-xl text-sm border border-primary-500/20 flex items-center shadow-sm"
+                          className="px-3 py-1.5 bg-primary/10 text-primary rounded-xl text-sm border border-primary/20 flex items-center shadow-sm font-semibold"
                         >
                           <CheckCircle2 className="w-4 h-4 mr-1.5" />
                           {skill.name}
@@ -281,16 +290,16 @@ const JobDetailPage = () => {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-text-muted bg-background/50 p-3 rounded-xl border border-white/5">
+                    <p className="text-sm text-outline bg-surface_container_low p-3 rounded-xl border border-outline_variant/15 font-medium">
                       No key skills matched directly.
                     </p>
                   )}
                 </div>
 
-                <div className="pt-4 border-t border-background-elevated">
-                  <h4 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-3 flex items-center justify-between">
+                <div className="pt-4 border-t border-outline_variant/15">
+                  <h4 className="text-xs font-bold text-outline uppercase tracking-widest mb-3 flex items-center justify-between">
                     Missing Skills
-                    <span className="bg-red-500/20 text-red-400 px-2 py-0.5 rounded-md text-[10px]">
+                    <span className="bg-error/20 text-error px-2 py-0.5 rounded-lg text-[10px]">
                       {missingSkills.length}
                     </span>
                   </h4>
@@ -299,7 +308,7 @@ const JobDetailPage = () => {
                       {missingSkills.map((skill, index) => (
                         <span
                           key={`${skill.name}-${index}`}
-                          className="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-xl text-sm border border-red-500/20 flex items-center shadow-sm"
+                          className="px-3 py-1.5 bg-error/10 text-error rounded-xl text-sm border border-error/20 flex items-center shadow-sm font-semibold"
                         >
                           <XCircle className="w-4 h-4 mr-1.5" />
                           {skill.name}
@@ -307,26 +316,21 @@ const JobDetailPage = () => {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-primary-400 bg-primary-500/5 p-3 rounded-xl border border-primary-500/10 flex items-center">
+                    <p className="text-sm text-primary bg-primary/5 p-3 rounded-xl border border-primary/10 flex items-center font-medium">
                       <CheckCircle2 className="w-4 h-4 mr-2" />
                       You have all the required skills.
                     </p>
                   )}
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {missingSkills.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="bg-gradient-to-br from-background-surface to-background border border-accent-500/30 rounded-3xl p-6 shadow-ai-glow relative overflow-hidden group hover:border-accent-500/50 transition-colors"
-              >
-                <div className="absolute top-0 right-0 w-48 h-48 bg-accent-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transition-all group-hover:bg-accent-500/10" />
+              <div className="anim-fade-up bg-surface_container_lowest border border-secondary/30 rounded-[24px] p-6 shadow-ambient-sm relative overflow-hidden group hover:border-secondary/50 transition-colors">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-secondary/10 rounded-full blur-[60px] -mr-10 -mt-10 pointer-events-none transition-all group-hover:bg-secondary/20" />
 
-                <h3 className="text-lg font-heading font-bold text-text-primary mb-5 flex items-center relative z-10">
-                  <Zap className="w-5 h-5 mr-2 text-accent-400 fill-accent-400/20" />
+                <h3 className="text-lg font-heading font-extrabold text-on_surface mb-5 flex items-center relative z-10">
+                  <Zap className="w-5 h-5 mr-3 text-secondary fill-secondary/20" />
                   AI Resume Tips
                 </h3>
 
@@ -334,22 +338,22 @@ const JobDetailPage = () => {
                   {missingSkills.map((skill, index) => (
                     <div
                       key={`${skill.name}-${index}`}
-                      className="bg-background-elevated/40 border border-white/5 rounded-2xl p-4 hover:bg-background-elevated/60 transition-colors"
+                      className="bg-surface_container_low border border-outline_variant/15 rounded-[16px] p-4 hover:bg-surface_container_highest transition-colors"
                     >
-                      <div className="font-semibold text-text-primary text-sm flex items-center justify-between mb-2">
+                      <div className="font-bold text-on_surface text-sm flex items-center justify-between mb-2">
                         <span className="flex items-center">
-                          <span className="w-1.5 h-1.5 rounded-full bg-accent-400 mr-2 shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-secondary mr-2 shadow-[0_0_8px_rgba(255,255,255,0.4)]" />
                           {skill.name}
                         </span>
                       </div>
-                      <p className="text-sm text-text-secondary leading-relaxed">
+                      <p className="text-sm text-on_surface_variant leading-relaxed font-medium">
                         {skill.improvementTip ||
                           'Consider adding a project or course demonstrating this skill.'}
                       </p>
                     </div>
                   ))}
                 </div>
-              </motion.div>
+              </div>
             )}
           </div>
         </div>

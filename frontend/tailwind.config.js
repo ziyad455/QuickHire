@@ -7,44 +7,61 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Core Brand Strategy: "Success & Growth"
-        primary: {
-          50: '#ecfdf5',
-          100: '#d1fae5',
-          200: '#a7f3d0',
-          300: '#6ee7b7',
-          400: '#34d399',
-          500: '#10b981', // Main Primary (Emerald)
-          600: '#059669',
-          700: '#047857',
-          800: '#065f46',
-          900: '#064e3b',
-        },
-        // AI/Tech Accent Strategy: "Intelligence & Analysis"
-        accent: {
-          500: '#8b5cf6', // Violet for AI features
-          600: '#7c3aed',
-        },
-        // Background & Surfaces (Modern Dark Theme)
-        background: {
-          DEFAULT: '#0f172a',   // Slate 900
-          surface: '#1e293b',   // Slate 800 - for cards
-          elevated: '#334155',  // Slate 700 - for hovers/modals
-        },
-        // Text Colors
-        text: {
-          primary: '#f8fafc',   // Slate 50
-          secondary: '#94a3b8', // Slate 400
-          muted: '#64748b',     // Slate 500
-        }
+        background: "#eef2f6",
+        error: "#ba1a1a",
+        error_container: "#ffdad6",
+        inverse_on_surface: "#f0f1f2",
+        inverse_primary: "#c3c0ff",
+        inverse_surface: "#2e3132",
+        on_background: "#191c1d",
+        on_error: "#ffffff",
+        on_error_container: "#93000a",
+        on_primary: "#ffffff",
+        on_primary_container: "#dad7ff",
+        on_primary_fixed: "#0f0069",
+        on_primary_fixed_variant: "#3323cc",
+        on_secondary: "#ffffff",
+        on_secondary_container: "#fffbff",
+        on_secondary_fixed: "#25005a",
+        on_secondary_fixed_variant: "#5a00c6",
+        on_surface: "#191c1d",
+        on_surface_variant: "#404759",
+        on_tertiary: "#ffffff",
+        on_tertiary_container: "#93e8ff",
+        on_tertiary_fixed: "#001f26",
+        on_tertiary_fixed_variant: "#004e5c",
+        outline: "#5f6776",
+        outline_variant: "#aeb7c4",
+        primary: "#3525cd",
+        primary_container: "#4f46e5",
+        primary_fixed: "#e2dfff",
+        primary_fixed_dim: "#c3c0ff",
+        secondary: "#712ae2",
+        secondary_container: "#8a4cfc",
+        secondary_fixed: "#eaddff",
+        secondary_fixed_dim: "#d2bbff",
+        surface: "#f3f5f8",
+        surface_bright: "#fbfcfe",
+        surface_container: "#e6ebf0",
+        surface_container_high: "#e0e5eb",
+        surface_container_highest: "#d8dde5",
+        surface_container_low: "#ecf0f4",
+        surface_container_lowest: "#ffffff",
+        surface_dim: "#cfd6de",
+        surface_tint: "#4d44e3",
+        surface_variant: "#dfe4ea",
+        tertiary: "#00505f",
+        tertiary_container: "#006a7c",
+        tertiary_fixed: "#acedff",
+        tertiary_fixed_dim: "#4cd7f6"
       },
       fontFamily: {
-        heading: ['Outfit', 'Inter', 'sans-serif'],
-        body: ['Inter', 'Roboto', 'sans-serif'],
+        heading: ['Manrope', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
       },
       boxShadow: {
-        'glow': '0 0 20px rgba(16, 185, 129, 0.15)', // Subtle green glow for matched jobs
-        'ai-glow': '0 0 20px rgba(139, 92, 246, 0.2)', // Violet glow for gap analysis
+        'ambient': '0 28px 56px 0 rgba(25, 28, 29, 0.08)',
+        'ambient-sm': '0 14px 32px 0 rgba(25, 28, 29, 0.08)',
       }
     },
   },
